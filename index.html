@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DevProject Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-left">
+                <h1>DevProject Manager</h1>
+                <p class="subtitle">Manage your development tasks efficiently</p>
+            </div>
+        </header>
+        
+        <div class="project-list">
+            <div class="project-list-header">
+                <h2>Projects</h2>
+                <button onclick="showNewProjectModal()" class="btn secondary-btn">
+                    <span class="icon"></span> New Project
+                </button>
+            </div>
+            <div class="projects-container"></div>
+        </div>
+
+        <div class="kanban-board" id="taskList">
+            <div class="column" id="todo">
+                <div class="column-header">
+                    <h2>To Do</h2>
+                    <span class="task-count">0</span>
+                </div>
+                <div class="tasks-container"></div>
+            </div>
+            <div class="column" id="in-progress">
+                <div class="column-header">
+                    <h2>In Progress</h2>
+                    <span class="task-count">0</span>
+                </div>
+                <div class="tasks-container"></div>
+            </div>
+            <div class="column" id="review">
+                <div class="column-header">
+                    <h2>In Review</h2>
+                    <span class="task-count">0</span>
+                </div>
+                <div class="tasks-container"></div>
+            </div>
+            <div class="column" id="done">
+                <div class="column-header">
+                    <h2>Done</h2>
+                    <span class="task-count">0</span>
+                </div>
+                <div class="tasks-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="projectModalTitle">Project Details</h2>
+                <div class="modal-actions">
+                    <button type="button" class="delete-btn" onclick="deleteProject()" title="Delete project">
+                        <span class="icon">🗑️</span>
+                    </button>
+                    <button class="modal-close" onclick="closeModal('projectModal')">&times;</button>
+                </div>
+            </div>
+            <form onsubmit="createProject(event)" class="project-form">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label class="form-label" for="projectName">Project Name*</label>
+                        <input type="text" 
+                               id="projectName" 
+                               class="form-input" 
+                               placeholder="Enter project name" 
+                               required 
+                               minlength="3" 
+                               maxlength="50">
+                        <div class="error-message"></div>
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label class="form-label" for="projectDescription">Description</label>
+                        <textarea id="projectDescription" 
+                                  class="form-input" 
+                                  placeholder="Project description"
+                                  maxlength="500"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="projectRepo">Git Repository</label>
+                        <input type="url" 
+                               id="projectRepo" 
+                               class="form-input" 
+                               placeholder="https://github.com/username/repo"
+                               pattern="^(https?:\/\/)?([\w\d.-]+)\.([a-z\.]{2,6})(\/[\w\d.-]+)*\/?$">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="projectTechStack">Tech Stack</label>
+                        <input type="text" 
+                               id="projectTechStack" 
+                               class="form-input" 
+                               placeholder="React, Node.js, MongoDB">
+                        <small class="help-text">Separate technologies with commas</small>
+                    </div>
+                </div>
+                
+                <div class="project-tasks-section">
+                    <h3 class="section-title">Project Tasks</h3>
+                    <div class="quick-task-form">
+                        <div class="form-group">
+                            <input type="text" 
+                                   class="form-input task-input" 
+                                   placeholder="Add a new task..."
+                                   aria-label="New task">
+                        </div>
+                        <div class="task-form-controls">
+                            <select class="form-input task-type-select">
+                                <option value="">Select Type</option>
+                                <!-- Populated by JavaScript -->
+                            </select>
+                            <select class="form-input task-priority-select">
+                                <option value="low">Low Priority</option>
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                            <button type="button" class="btn primary-btn add-task-btn">
+                                <span class="icon">➕</span> Add Task
+                            </button>
+                        </div>
+                    </div>
+                    <div class="project-tasks-list">
+                        <!-- Tasks will be rendered here -->
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('projectModal')" class="btn secondary-btn">Cancel</button>
+                    <button type="submit" class="btn primary-btn">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Details Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Details</h2>
+                <button class="modal-close" onclick="closeModal('taskModal')" aria-label="Close modal">&times;</button>
+            </div>
+            <form onsubmit="saveTaskDetails(event)" class="task-form">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label class="form-label" for="taskTitle">Title*</label>
+                        <input type="text" id="taskTitle" class="form-input" required 
+                               minlength="3" maxlength="200" placeholder="Task title">
+                        <div class="error-message"></div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="taskDescription">Description</label>
+                        <textarea id="taskDescription" class="form-input" rows="3" 
+                                placeholder="Detailed task description"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskStatus">Status</label>
+                        <select id="taskStatus" class="form-input" required>
+                            <option value="todo">To Do</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="review">In Review</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editTaskType">Type</label>
+                        <select id="editTaskType" class="form-input" required>
+                            <!-- Populated by JavaScript -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskDueDate">Due Date</label>
+                        <input type="date" id="taskDueDate" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskEstimate">Estimated Hours</label>
+                        <input type="number" id="taskEstimate" class="form-input" 
+                               min="0" max="100" step="0.5" placeholder="0.0">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskAssignee">Assigned To</label>
+                        <input type="text" id="taskAssignee" class="form-input" 
+                               pattern="[a-zA-Z0-9_-]{3,30}" placeholder="Developer name">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskLabels">Labels</label>
+                        <input type="text" id="taskLabels" class="form-input" 
+                               placeholder="frontend, api, urgent">
+                        <small class="help-text">Separate labels with commas</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskDependencies">Dependencies</label>
+                        <input type="text" id="taskDependencies" class="form-input" 
+                               placeholder="Task IDs (comma-separated)">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label class="form-label" for="taskCommits">Related Commits</label>
+                        <textarea id="taskCommits" class="form-input" rows="2" 
+                                placeholder="One commit hash per line"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskTestStatus">Test Status</label>
+                        <select id="taskTestStatus" class="form-input">
+                            <option value="pending">Tests Pending</option>
+                            <option value="passed">Tests Passed</option>
+                            <option value="failed">Tests Failed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" onclick="closeModal('taskModal')" class="btn secondary-btn">Cancel</button>
+                    <button type="submit" class="btn primary-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="notification-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
